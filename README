@@ -1,0 +1,7 @@
+Vim cpp omnicompletion and php omnicompletion requires the precence of ctags
+tags. Originally I made a shortcut to recreate the tags file, but I found it to
+be on the way.
+
+This is my second attempt on automating tags creation. It recursively finds all
+the subdirectories, listens to them and if a suitable file is modified, the
+tags file is updated.
