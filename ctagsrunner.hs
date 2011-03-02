@@ -1,4 +1,3 @@
-#!/usr/bin/env runhaskell
 module Main where
 import System.Process (proc, createProcess)
 import System.INotify (withINotify, Event(..), EventVariety(..), addWatch)
@@ -31,10 +30,13 @@ getPath (Created True _ ) = mempty -- Empty directory doesn't trigger
 getPath (Created _ path ) = acceptable path
 getPath (Deleted _ path ) = acceptable path
 
+filetypes ::  [[Char]]
 filetypes = [".php"]
+acceptable :: FilePath -> Maybe FilePath
 acceptable path | takeExtension path `elem` filetypes = return path
 		| otherwise = mempty
 
+inotify ::  FilePath -> Event -> IO ()
 inotify root event =
   let maybepath = getPath event
   in case maybepath of
@@ -45,8 +47,10 @@ inotify root event =
 	    createProcess (ctags (root </> path))
 	    return ()
 
+main ::  IO ()
 main = withINotify $ \i -> do
   dirs <- getRecursiveContents "."
   print dirs
   M.mapM_ (\f -> addWatch i [Modify, Delete] f (inotify f)) ("." : dirs)
   getLine -- Wait for user input and quit
+  return ()
