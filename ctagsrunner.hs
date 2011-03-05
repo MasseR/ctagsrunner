@@ -1,12 +1,17 @@
 module Main where
 import System.Process (proc, createProcess)
 import System.INotify (withINotify, Event(..), EventVariety(..), addWatch)
-import System.Directory (getDirectoryContents, doesDirectoryExist)
+import System.Directory (getDirectoryContents, doesDirectoryExist, doesFileExist)
 import System.FilePath ((</>), takeExtension)
 import qualified Control.Monad.Stream as M
 import qualified Data.List.Stream as L
 import Data.Monoid(mempty)
-import Control.Monad
+import qualified Data.Set as S
+import Data.Set (Set(..))
+import Control.Concurrent.MVar
+import System.IO.Unsafe(unsafePerformIO)
+
+paths = unsafePerformIO $ newMVar S.empty
 
 getRecursiveContents :: FilePath -> IO [FilePath]
 getRecursiveContents path = do
@@ -44,8 +49,22 @@ inotify root event =
 	  Just "tags" -> return ()
 	  Just path -> do
 	    putStrLn path
-	    createProcess (ctags (root </> path))
+	    run (root </> path)
 	    return ()
+  where
+    run path = do
+      exists <- doesFileExist path
+      if exists then modifyhandler path
+		else deletehandler path
+    deletehandler path = withMVar paths $ \set -> do
+      print "deletion handler"
+      let newset = S.delete path set
+      mapM_ (createProcess . ctags) $ S.toList newset
+      return newset
+    modifyhandler path = withMVar paths $ \set -> do
+      print "modify handler"
+      createProcess $ ctags path
+      return $ S.insert path set
 
 main ::  IO ()
 main = withINotify $ \i -> do
