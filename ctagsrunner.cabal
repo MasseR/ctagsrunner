@@ -48,7 +48,7 @@ Executable ctagsrunner
   Main-is:             ctagsrunner.hs
   
   -- Packages needed in order to build this package.
-  Build-depends:       base >= 3 && < 5,directory,filepath,process,hinotify,stream-fusion
+  Build-depends:       base >= 3 && < 5,directory,filepath,process,hinotify,stream-fusion, containers
   
   -- Modules not exported by this package.
   -- Other-modules:       
