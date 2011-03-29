@@ -29,11 +29,8 @@ ctags path = proc "ctags" ([fields] ++ kinds ++ ["-a", path])
 
 getPath :: Event -> Maybe FilePath
 getPath (Modified _ path) = path >>= acceptable
-getPath (MovedIn _ path _) = acceptable path
-getPath (MovedOut _ path _) = acceptable path
-getPath (Created True _ ) = mempty -- Empty directory doesn't trigger
-getPath (Created _ path ) = acceptable path
 getPath (Deleted _ path ) = acceptable path
+getPath _ = mempty -- I think this is QOverFlow/DeletedSelf or maybe even Unknown
 
 filetypes ::  [[Char]]
 filetypes = [".php"]
